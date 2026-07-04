@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f0f1a">
+  <title>StickerBomba 💣</title>
+
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="manifest" href="manifest.json">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: rgba(255,255,255,0.06);
+      --accent: #ff4d6a;
+      --accent2: #ff7b5c;
+      --text: #ffffff;
+      --text-secondary: #b0b0cc;
+      --radius: 24px;
+      --shadow: 0 20px 40px rgba(0,0,0,0.4);
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0f0f1a;
+      background-image: radial-gradient(circle at 20% 30%, rgba(255,77,106,0.12) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(255,123,92,0.12) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding-bottom: calc(100px + env(safe-area-inset-bottom, 16px));
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Header */
+    .header {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 12px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+    .header h1 {
+      font-size: clamp(1.8rem, 5vw, 2.2rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+    .header .by-line {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .header p {
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    /* Tab bar */
+    .tab-bar {
+      position: fixed;
+      bottom: 45px; /* imza için yer açtık */
+      left: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 40px;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 12px;
+      z-index: 100;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: var(--shadow);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 10px 4px;
+      border-radius: 30px;
+      transition: var(--transition);
+      cursor: pointer;
+      animation: none;
+    }
+    .tab-btn.active {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 8px 20px rgba(255,77,106,0.4);
+      animation: pulse 0.6s ease;
+    }
+    .tab-btn span { font-size: 1.4rem; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .btn:active {
+      animation: bounce 0.2s ease;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 480px;
+      margin: 20px auto;
+      padding: 0 16px;
+      animation: fadeIn 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: var(--shadow);
+    }
+
+    /* Kamera */
+    #cameraContainer {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #000;
+      aspect-ratio: 3/4;
+      max-height: 70vh;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      display: none;
+      object-fit: cover;
+      border-radius: var(--radius);
+      transform: scaleX(-1);
+    }
+    #cameraPlaceholder {
+      background: rgba(255,255,255,0.05);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+    }
+    .btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(255,77,106,0.3);
+      letter-spacing: -0.3px;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.96); animation: none; }
+    .btn.secondary {
+      background: rgba(255,255,255,0.12);
+      box-shadow: none;
+      backdrop-filter: blur(5px);
+    }
+    #captureBtn {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(12px);
+      border: 3px solid rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    #captureBtn::after {
+      content: "";
+      width: 44px;
+      height: 44px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: block;
+    }
+    #captureBtn:active { transform: translateX(-50%) scale(0.9); }
+
+    /* Result */
+    .result-area { margin-top: 16px; }
+    .result-area img {
+      width: 100%;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .caption-overlay {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      font-weight: 800;
+      text-align: center;
+      padding: 14px 24px;
+      border-radius: 40px;
+      margin: -30px 16px 16px;
+      position: relative;
+      z-index: 2;
+      transform: rotate(-1.5deg);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin: 12px 0;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Mini özellikler */
+    .mini-features {
+      display: flex;
+      gap: 10px;
+      margin: 8px 0;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .mini-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .mini-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    select.mini-select {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    /* Özel Sticker */
+    .color-palette { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; justify-content: center; }
+    .color-dot {
+      width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: var(--transition); box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .color-dot.selected { border-color: white; transform: scale(1.15); }
+    #customText {
+      width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: white; font-size: 16px; padding: 14px; border-radius: 20px; margin: 12px 0 20px;
+      resize: none; backdrop-filter: blur(5px); transition: var(--transition);
+    }
+    #customText:focus { outline: none; border-color: var(--accent); }
+    .sticker-preview {
+      background: rgba(255,255,255,0.08); border-radius: var(--radius); padding: 36px 20px;
+      text-align: center; font-size: 1.8rem; font-weight: 800; margin: 20px 0;
+      display: flex; align-items: center; justify-content: center; word-break: break-word;
+      box-shadow: inset 0 4px 20px rgba(0,0,0,0.2); backdrop-filter: blur(5px);
+      min-height: 120px;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Galeri */
+    .gallery {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px;
+    }
+    .gallery .item {
+      position: relative; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: var(--transition);
+      aspect-ratio: 1;
+    }
+    .gallery .item:active { transform: scale(0.97); }
+    .gallery img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .gallery .delete-btn {
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      border: none; color: white; border-radius: 50%; width: 26px; height: 26px;
+      font-size: 14px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition);
+    }
+    .empty-state {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 40px;
+      grid-column: span 3;
+      font-size: 1.2rem;
+    }
+    .empty-state span { font-size: 3rem; display: block; margin-bottom: 10px; }
+
+    /* İmza */
+    .signature {
+      position: fixed;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.2);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      z-index: 90;
+      text-align: center;
+      width: 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>StickerBomba 💣</h1>
+  <p>arkadaşını çek, komik sticker'ı yapıştır</p>
+</div>
+
+<!-- EKRANLAR -->
+<div id="cameraScreen" class="screen active">
+  <div id="cameraContainer">
+    <video id="video" autoplay playsinline muted></video>
+    <div id="cameraPlaceholder">
+      <span style="font-size:3.5rem;">😜</span>
+      <button class="btn" id="startCameraBtn">✨ Kamerayı Aç</button>
+      <p style="color:var(--text-secondary); font-size:0.85rem;">hadi biraz eğlenelim!</p>
+    </div>
+    <button id="captureBtn" title="Fotoğraf Çek"></button>
+  </div>
+
+  <div class="mini-features" id="liveFilters" style="display:none; margin-top:10px;">
+    <button class="mini-btn active" data-filter="normal">Normal</button>
+    <button class="mini-btn" data-filter="bw">Siyah-Beyaz</button>
+    <button class="mini-btn" data-filter="sepia">Sepya</button>
+    <button class="mini-btn" data-filter="vintage">Vintage</button>
+    <select id="captionColor" class="mini-select">
+      <option value="#ff4d6a">Kırmızı</option>
+      <option value="#ffffff">Beyaz</option>
+      <option value="#000000">Siyah</option>
+      <option value="#ffdd00">Sarı</option>
+    </select>
+  </div>
+  <div id="cameraResult" class="card result-area" style="display:none;"></div>
+</div>
+
+<div id="customScreen" class="screen">
+  <div class="card" style="text-align:center;">
+    <h2 style="font-weight:700; margin-bottom:12px;">✏️ Kendi Sticker'ını Yarat</h2>
+    <div class="color-palette" id="colorPalette"></div>
+    <textarea id="customText" placeholder="komik bir şeyler yaz..." maxlength="100" rows="2"></textarea>
+    <div class="sticker-preview" id="stickerPreview">
+      <span id="previewTextSpan">Yazınız...</span>
+      <span id="previewEmojiSpan" style="font-size:3rem;"></span>
+    </div>
+    <button class="btn" id="saveCustomBtn" style="width:100%; justify-content:center;">💾 Sticker'ı Kaydet</button>
+  </div>
+</div>
+
+<div id="galleryScreen" class="screen">
+  <div class="card">
+    <h2 style="font-weight:700; margin-bottom:12px; text-align:center;">🖼️ Galeri</h2>
+    <div class="gallery" id="galleryContainer"></div>
+  </div>
+</div>
+
+<!-- ALT TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-screen="cameraScreen"><span>📸</span> Çek</button>
+  <button class="tab-btn" data-screen="customScreen"><span>✏️</span> Özel</button>
+  <button class="tab-btn" data-screen="galleryScreen"><span>🖼️</span> Galeri</button>
+</div>
+
+<!-- İMZA -->
+<div class="signature">---- MCT YAZILIM ----</div>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+  // ---------- DEĞİŞKENLER ----------
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const captureBtn = document.getElementById('captureBtn');
+  const startCameraBtn = document.getElementById('startCameraBtn');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const cameraResult = document.getElementById('cameraResult');
+  const cameraContainer = document.getElementById('cameraContainer');
+  const galleryContainer = document.getElementById('galleryContainer');
+  const customText = document.getElementById('customText');
+  const stickerPreview = document.getElementById('stickerPreview');
+  const previewTextSpan = document.getElementById('previewTextSpan');
+  const previewEmojiSpan = document.getElementById('previewEmojiSpan');
+  const colorPalette = document.getElementById('colorPalette');
+  const saveCustomBtn = document.getElementById('saveCustomBtn');
+  const liveFilters = document.getElementById('liveFilters');
+  const captionColorSelect = document.getElementById('captionColor');
+
+  let currentStream = null;
+  let selectedColor = '#ff4d6a';
+  let currentCaption = '';
+  let activeFilter = 'normal';
+  let captionColor = '#ff4d6a';
+
+  const emojiList = ['😂', '🤣', '😎', '😜', '🤪', '😇', '🤩', '🥳', '😈', '👻', '💩', '🔥', '💯', '👀', '🍑', '🍆', '👅', '💦'];
+
+  // ---------- +18 KOMİK YAZILAR (200+ karışık) ----------
+  const funnyCaptions = [
+    "Bu gülüşün arkasında neler var neler…", "Ağzı açık kalmış, sinek kaçacak.",
+    "Sinirden dumanlar çıkıyor.", "Uykuya beş kala.", "Dümdüz bakış, içi boş.",
+    "Az önce gördüğü şeye biz de inanamadık.", "İçindeki volkan aktif.",
+    "Gülünce çok masum görünüyor ama…", "Bu surat 'oha' demenin evrensel hali.",
+    "Kaşlar çatılmış, haberin olsun.", "Poker face şampiyonu.", "Şaşkınlıktan heykel oldu.",
+    "Gözler açık ama beyin kapalı.", "Ruhu bedenini terk etmiş.",
+    "Kahkaha atmak üzere olan insan modeli.", "Bilgisayar mavi ekran verdi sanki.",
+    "Bakışlarıyla öldürebilir.", "Ninni söylesek uyur.", "Duvara bakar gibi.",
+    "Mutluluk pozu, içi dışı bir.", "Şok, ama iyi mi kötü mü belli değil.",
+    "Trafikte selektör yemiş gibi.", "Enerji tasarrufu modunda.", "Ne düşündüğünü Allah bilir.",
+    "Bu sırıtış bedava değil.", "Beyin.exe çalışmayı durdurdu.",
+    "Yumruklar sıkılmış, dişler gıcırdıyor.", "Yatak özlemi çeken insan.",
+    "İfadesizlik abidesi.", "Joker olma yolunda emin adımlarla.",
+    "Haberi yeni almış gibisin.", "Hulk modu: ON.", "Sabahlamış belli.",
+    "Boş boş bakmanın kitabını yazmış.", "Gülümsemesi 10 numara, niyeti 5 numara.",
+    "Bu ifadeyle tüm soruları sordun.", "Sinir küpü, ama tatlı küp.",
+    "Bu ifade 'uyusam da kalkmasam' diyor.", "Dışı sakin, içi fırtına mı?",
+    "Sanki piyangoyu kazanmış gibi.", "Anlık şaşkınlık, kalıcı dostluk.",
+    "Sakin ol champ, daha çok gençsin.", "Kahve şart, acil.", "Mona Lisa gülümsemesi bile yok.",
+    "Gülünce dünya daha güzel, o da biliyor.", "Şaşırma seviyesi: 1000.",
+    "Öfke kontrolü tavsiye edilir.", "Düşük pil modu.", "Bu surata 'noluyo' demek farz.",
+    "O gülünce çiçekler açıyor (yalan).", "Şaşkın ördek yavrusu.",
+    "Bu sinirle dağları deler.", "Uyku tulumu lazım.", "Acıkmış olabilir.",
+    "Bu tebessümün altından envai türlü hinlik çıkar.", "O anki ifade tam 'hadi canım'.",
+    "Karşısındakine acımıyoruz.", "Rüyada mı gerçek mi belli değil.",
+    "Dalgın mı, düşünceli mi, yoksa sadece boş mu?", "Sırıtık ama sevimli sırıtık.",
+    "Şaşırmakta haklı, çünkü hayat garip.", "Belli ki çay soğumuş.",
+    "Esneme krizinin eşiğinde.", "Bu ifadeyle felsefe yapılır.",
+    "Gülüşün bedava reklamı.", "Kulaklarına kadar açık ağız.",
+    "Kızgın emoji canlı versiyonu.", "Uyuyan güzel, birazdan.",
+    "Düz bakan, derin yaşar.", "Yüzünde bayram havası var.",
+    "Acaba ne gördü de bu hale geldi?", "Bu ifadeyle markete gidilmez.",
+    "Göz kapakları grevde.", "Bu surata her şey yazılır.",
+    "Gözlerinin içi gülüyor, cüzdanı ağlıyor.", "Sürpriz yumurtadan çıkan oyuncak gibi.",
+    // +18 eklemeler (100+ adet)
+    "Bu bakışın altından çok şey çıkar.", "Gece kuşu olduğu her halinden belli.",
+    "Yatakta ne yaptığını tahmin edebiliyoruz.", "Bu suratla ancak yastık tartışılır.",
+    "Aklından geçenleri okuduk, kızardık.", "Niyet bozuk, surat tatlı.",
+    "Bu ifade tam 'bana ne yapacaksın?' bakışı.", "İçinden geçenleri sansürleyemedik.",
+    "Sırıtışından anlaşılıyor: planları var.", "Bu pozisyon başka alemlere açılır.",
+    "Kamera şakası sandı, değil.", "Şu an aklında tek bir şey var: yemek.",
+    "Yok canım, öyle bakma dedirtiyor.", "Bu bakışlar bedava mı sanıyorsun?",
+    "Az sonra bir olay çıkacak gibi.", "Terbiyesizliğin daniskası bu surat.",
+    "Bu ifadeyle aklımdan kötü şeyler geçiyor.", "Hınzırlık peşinde olduğu açık.",
+    "Yüzünde 'ben masumum' yazıyor ama…", "Gözlere bak, yalan söylüyor.",
+    "Sırıtışından belli: çok fena bir şey yaptı.", "Bu suratla saatlerce dedikodu yapılır.",
+    "Dudak büküşü bile olay.", "Kaşlar havada, akıl havada.",
+    "Bu bakışla karşı cinsi tavlar.", "Az sonra birinin kalbini kıracak.",
+    "Niyet okuma seansı başlasın.", "Böyle gülüyorsa kesin biriyle dalga geçiyor.",
+    "İç sesi: 'ne var ya?'", "Masum değil, sadece rol yapıyor.",
+    "Bu ifadeyle gidip birine laf sokacak.", "Kesin yine bir şey çeviriyor.",
+    "Gözlerinden sürekli plan akıyor.", "Sanki az önce biriyle kavga etmiş.",
+    "Barut fıçısı gibi, patlamaya hazır.", "Bu bakışlarla kimseye güven vermez.",
+    "Tatlı kaos enerjisi yayıyor.", "Bu suratla şaka maka dinlenmez.",
+    "İçinde bir şeytan var, dışına vuruyor.", "Tam bir baş belası ifadesi.",
+    "Bu surata güvenip sır verilmez.", "Şimdi bu adam ne yapar bilinmez.",
+    "Yarı melek yarı şeytan karışımı.", "Kaşların hareketi ayrı bir olay.",
+    "Gülüşünde bir hinlik seziyorum.", "Bu ifadeyle evlenme teklifi edilmez.",
+    "Sanki bütün suçları o işlemiş gibi.", "Bu suratla 'ben yapmadım' denmez.",
+    "Gözlerinde şeytan tüyü var.", "Muzip bakışın kitabını yazmış.",
+    "Bu ifade tam bir ergen isyanı.", "Her an bir şeyler çevirecek gibi.",
+    "Kesin birazdan bir şey patlatacak.", "Sırıtışı bedava, niyeti pahalı.",
+    "Bu suratla ancak yaramazlık yapılır.", "Tam bir sabah mahmurluğu ifadesi.",
+    "Uykusuzluktan ne düşündüğü belli değil.", "Kafein seviyesi düşük, dikkat et.",
+    "Daha yeni uyanmış, ruhu gelmemiş.", "Bu ifadeyle iş görüşmesine gidilmez.",
+    "Hayattan bir gün çalmış gibi.", "Göz altları parti yapmış.",
+    "Rüyasında ne gördüyse yüzüne yansımış.", "Sabah sabah bu surat çekilmez.",
+    "Enerji içeceği reklamından fırlamış.", "Uyku tulumu bu adamın en iyi arkadaşı.",
+    "Bu suratla sadece yatak konuşulur.", "Kahve zinciri sponsoru olabilir.",
+    "Gözlerini açmak için işkence çekiyor.", "Uykuyla dans eden adam.",
+    "Bu ifadeyle '5 dakika daha' denir.", "Yorganın altından çıkmış gibi.",
+    "Belli ki rüyası yarım kalmış.", "Gerçek dünyaya dönüş yapamıyor.",
+    "Yüzünde 'neredeyim ben?' yazıyor.", "Bakışları hala rüya aleminde.",
+    "Vücut burada, ruh yatakta.", "Bu surata 'günaydın' denmez, direkt kahve verilir.",
+    "Az önce uykusundan ödün vermiş.", "Yastık izi hala yanağında.",
+    "Bu bakışla ancak pijama partisi verilir.",
+    "Tam bir kedi uykusu ifadesi.", "Şekerleme kaçkını.",
+    "Yatay pozisyondan yeni kalkmış.", "Bu suratla işe gitmek suç.",
+    "Rüyasında ne gördüyse anlatamıyor.", "Uyku mahmurluğunun vücut bulmuş hali.",
+    "Yatağa zincirle bağlı olabilir.", "Gözlerini açık tutma savaşçısı.",
+    "Bu ifadeyle hiçbir şey ciddiye alınmaz.",
+    "Kahkaha atmaktan çenesi ağrıyacak.", "Gülerken ağzına sinek kaçabilir.",
+    "Mutluluktan havalara uçacak.", "Gülümsemesi içimizi ısıttı.",
+    "Bu neşeyle tüm gün enerji verir.", "Sanki az önce komik bir şey duymuş.",
+    "Gülünce gözleri kayboluyor.", "Bu gülüşe kurban olunur.",
+    "Mutluluk pozuyla tüm sorunları unutturur.", "Sırıtışı bulaşıcı, dikkat et.",
+    "Bu neşe boşuna değil, kesin bir şey var.",
+    "Gülerken yanakları al al olmuş.", "Gülüşünün desibelini ölçmek lazım.",
+    "Bu ifade tam bir kahkaha öncesi.",
+    "Mutluluktan uçacak gibi, tutun sıkı.",
+    "Gülümsemesi 100 watt ampul gibi.",
+    "Bu adam gülünce dünya daha güzel.",
+    "Neşesiyle etrafa pozitiflik saçıyor.",
+    "Gülünce içimiz açılıyor.",
+    "Sanki komedi filmi izlemiş de gelmiş.",
+    "Bu mutlulukla sabah sporuna gidilmez.",
+    "Gülüşüyle çiçekler açtırır.",
+    "Kesin az önce biriyle dalga geçti.",
+    "Bu sırıtışın arkasında bir muziplik var.",
+    "Gülümsemesi o kadar tatlı ki, şeker koması.",
+    "Kahkahasıyla deprem yaratabilir.",
+    "Bu neşeyle sınavlara girilmez.",
+    "Mutluluktan uçuyor, yere bassın.",
+    "Gülünce etrafa neşe saçıyor.",
+    "Bu surat tam bir mutluluk abidesi.",
+    "Sırıtışı bulaşıcı, hemen kaparız.",
+    "Gülünce gamzeleri derinleşiyor.",
+    "Neşesi gözlerinden okunuyor.",
+    "Bu adamın gülüşü para eder.",
+    "Mutluluk pozuyla tüm dertleri siler.",
+    "Gülümsemesiyle ortalığı aydınlatır.",
+    "Bu surat 'hayat güzel' dedirtiyor.",
+    "Sanki komedi kralı olmuş da gelmiş.",
+    "Gülünce ortam şenleniyor.",
+    "Bu ifadeyle ancak eğlence planı yapılır.",
+    "Mutluluğu yüzüne vurmuş, maşallah.",
+    "Gülüşüyle stres attırır.",
+    "Bu adam hep mutlu, sırrı ne?",
+    "Neşesi hiç bitmeyecek gibi.",
+    "Gülümsemesi kalpleri fethediyor."
+  ];
+
+  function getRandomCaption() {
+    return funnyCaptions[Math.floor(Math.random() * funnyCaptions.length)];
+  }
+
+  // ---------- KAMERA (düzeltilmiş) ----------
+  async function startCamera() {
+    try {
+      currentStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      video.srcObject = currentStream;
+      video.style.display = 'block';
+      cameraPlaceholder.style.display = 'none';
+      captureBtn.style.display = 'flex';
+      liveFilters.style.display = 'flex';
+      video.muted = true;
+      await video.play().catch(playError => {
+        console.warn("Video oynatma hatası:", playError);
+        video.play().catch(() => {
+          alert("Video başlatılamadı. Lütfen sayfayı yenileyip tekrar deneyin.");
+        });
+      });
+    } catch (err) {
+      console.error("Kamera hatası:", err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        alert("Kamera izni reddedildi. Lütfen tarayıcı ayarlarından kameraya izin verin.");
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        alert("Cihazınızda kamera bulunamadı.");
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        alert("Kamera başka bir uygulama tarafından kullanılıyor olabilir.");
+      } else {
+        alert("Kamera başlatılamadı: " + (err.message || 'Bilinmeyen hata'));
+      }
+      stopCamera();
+    }
+  }
+
+  function stopCamera() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+      currentStream = null;
+      video.srcObject = null;
+    }
+    video.style.display = 'none';
+    cameraPlaceholder.style.display = 'flex';
+    captureBtn.style.display = 'none';
+    liveFilters.style.display = 'none';
+  }
+
+  startCameraBtn.addEventListener('click', startCamera);
+
+  // Filtre ve yazı rengi seçimleri
+  document.querySelectorAll('.mini-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mini-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+    });
+  });
+  captionColorSelect.addEventListener('change', (e) => {
+    captionColor = e.target.value;
+  });
+
+  // ---------- STICKER ÇİZİMİ (yazı taşması engelli) ----------
+  function drawStickerOnCanvas(sourceImage, caption, extraEmoji = null) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        // Filtre uygula
+        if (activeFilter === 'bw') {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+            data[i] = avg; data[i+1] = avg; data[i+2] = avg;
+          }
+          ctx.putImageData(imageData, 0, 0);
+        } else if (activeFilter === 'sepia') {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2];
+            data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+            data[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+            data[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+          }
+          ctx.putImageData(imageData, 0, 0);
+        } else if (activeFilter === 'vintage') {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, data[i] * 1.1);
+            data[i+1] = Math.min(255, data[i+1] * 0.95);
+            data[i+2] = Math.min(255, data[i+2] * 0.85);
+          }
+          ctx.putImageData(imageData, 0, 0);
+        }
+
+        // Yazıyı sığdır
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        const maxWidth = canvas.width * 0.9;
+        let fontSize = 48;
+        ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
+        while (ctx.measureText(caption).width > maxWidth && fontSize > 20) {
+          fontSize -= 2;
+          ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
+        }
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
+        ctx.strokeText(caption, canvas.width/2, canvas.height - 20);
+        ctx.fillStyle = captionColor;
+        ctx.fillText(caption, canvas.width/2, canvas.height - 20);
+
+        if (extraEmoji) {
+          ctx.font = '60px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'top';
+          ctx.fillText(extraEmoji, canvas.width - 20, 20);
+        }
+
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.src = sourceImage;
+    });
+  }
+
+  // ---------- FOTOĞRAF ÇEK ----------
+  captureBtn.addEventListener('click', async () => {
+    if (!currentStream) return;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.translate(tempCanvas.width, 0);
+    tempCtx.scale(-1, 1);
+    tempCtx.drawImage(video, 0, 0);
+    tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+    const rawImage = tempCanvas.toDataURL('image/png');
+
+    currentCaption = getRandomCaption();
+    const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+    const finalSticker = await drawStickerOnCanvas(rawImage, currentCaption, randomEmoji);
+
+    cameraResult.style.display = 'block';
+    cameraResult.innerHTML = `
+      <img src="${finalSticker}" alt="sticker">
+      <div class="caption-overlay">${currentCaption} ${randomEmoji}</div>
+      <div class="btn-group">
+        <button class="btn" id="savePhotoBtn">💾 Kaydet</button>
+        <button class="btn" id="sharePhotoBtn">📤 Paylaş</button>
+        <button class="btn" id="refreshCaptionBtn">🔄 Yeni Yazı</button>
+        <button class="btn secondary" id="retakeBtn">📷 Tekrar Çek</button>
+      </div>
+    `;
+    cameraContainer.style.display = 'none';
+    liveFilters.style.display = 'none';
+
+    cameraResult.dataset.currentSticker = finalSticker;
+
+    const updateButtons = () => {
+      const currentSticker = cameraResult.dataset.currentSticker || finalSticker;
+      document.getElementById('savePhotoBtn').onclick = () => {
+        addSticker(currentSticker);
+        downloadSticker(currentSticker);
+        showToast('Sticker kaydedildi ve indirildi! 🎉');
+      };
+      document.getElementById('sharePhotoBtn').onclick = () => shareSticker(currentSticker);
+    };
+
+    updateButtons();
+
+    document.getElementById('refreshCaptionBtn').addEventListener('click', async () => {
+      currentCaption = getRandomCaption();
+      const newRandomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+      const newSticker = await drawStickerOnCanvas(rawImage, currentCaption, newRandomEmoji);
+      cameraResult.querySelector('img').src = newSticker;
+      cameraResult.querySelector('.caption-overlay').textContent = currentCaption + ' ' + newRandomEmoji;
+      cameraResult.dataset.currentSticker = newSticker;
+      updateButtons();
+    });
+
+    document.getElementById('retakeBtn').addEventListener('click', () => {
+      cameraResult.style.display = 'none';
+      cameraContainer.style.display = 'block';
+      liveFilters.style.display = 'flex';
+    });
+  });
+
+  // ---------- PAYLAŞMA ----------
+  async function shareSticker(dataUrl) {
+    if (navigator.share) {
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], 'sticker.png', { type: 'image/png' });
+      try {
+        await navigator.share({
+          title: 'StickerBomba',
+          text: 'Bu sticker’a bak! 💣',
+          files: [file]
+        });
+      } catch (err) {
+        alert('Paylaşım iptal edildi veya desteklenmiyor.');
+      }
+    } else {
+      alert('Tarayıcınız paylaşımı desteklemiyor. Görseli galeriden indirebilirsiniz.');
+    }
+  }
+
+  // ---------- GALERİ ----------
+  function getStickers() {
+    try { return JSON.parse(localStorage.getItem('stickerBomba_gallery')) || []; } catch { return []; }
+  }
+  function addSticker(dataUrl) {
+    const stickers = getStickers();
+    stickers.unshift({ src: dataUrl, date: new Date().toLocaleString() });
+    if (stickers.length > 30) stickers.pop();
+    localStorage.setItem('stickerBomba_gallery', JSON.stringify(stickers));
+    renderGallery();
+  }
+  function deleteSticker(index) {
+    const stickers = getStickers();
+    stickers.splice(index, 1);
+    localStorage.setItem('stickerBomba_gallery', JSON.stringify(stickers));
+    renderGallery();
+  }
+  function downloadSticker(dataUrl) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'stickerbomba_' + Date.now() + '.png';
+    a.click();
+  }
+  function renderGallery() {
+    const stickers = getStickers();
+    if (stickers.length === 0) {
+      galleryContainer.innerHTML = '<div class="empty-state"><span>📭</span> Henüz sticker yok.<br>Hemen bir tane oluştur!</div>';
+      return;
+    }
+    galleryContainer.innerHTML = stickers.map((s, i) => `
+      <div class="item">
+        <img src="${s.src}" alt="sticker" onclick="downloadSticker('${s.src}')">
+        <button class="delete-btn" onclick="event.stopPropagation();deleteSticker(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  // ---------- ÖZEL STICKER (emoji destekli) ----------
+  const bgColors = ['#ff4d6a','#ffb84d','#4cd964','#5e8bff','#c86bff','#ff7b5c','#34c759','#ff2d55','#64d2ff'];
+  let selectedEmoji = '';
+  function renderColorPalette() {
+    colorPalette.innerHTML = bgColors.map(c =>
+      `<div class="color-dot ${c===selectedColor?'selected':''}" style="background:${c};" data-color="${c}"></div>`
+    ).join('');
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        selectedColor = dot.dataset.color;
+        renderColorPalette();
+        updateStickerPreview();
+      });
+    });
+  }
+  function updateStickerPreview() {
+    stickerPreview.style.background = selectedColor;
+    previewTextSpan.textContent = customText.value || 'Yazınız...';
+    previewEmojiSpan.textContent = selectedEmoji || '';
+  }
+  customText.addEventListener('input', updateStickerPreview);
+  renderColorPalette();
+  updateStickerPreview();
+
+  const emojiInput = document.createElement('input');
+  emojiInput.type = 'text';
+  emojiInput.placeholder = 'emoji (opsiyonel)';
+  emojiInput.style.cssText = 'background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:6px; border-radius:10px; width:60px; text-align:center; margin-top:10px;';
+  emojiInput.addEventListener('input', (e) => {
+    selectedEmoji = e.target.value.slice(0, 2);
+    updateStickerPreview();
+  });
+  const emojiContainer = document.createElement('div');
+  emojiContainer.style.marginTop = '10px';
+  emojiContainer.appendChild(emojiInput);
+  document.getElementById('customScreen').querySelector('.card').insertBefore(emojiContainer, saveCustomBtn);
+
+  saveCustomBtn.addEventListener('click', () => {
+    if (!customText.value.trim()) { alert('Lütfen yazı gir.'); return; }
+    canvas.width = 500;
+    canvas.height = 500;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = selectedColor;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    const text = customText.value;
+    const maxWidth = 400;
+    let fontSize = 48;
+    ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
+    while (ctx.measureText(text).width > maxWidth && fontSize > 20) {
+      fontSize -= 2;
+      ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
+    }
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, canvas.width/2, canvas.height/2 - (selectedEmoji ? 30 : 0));
+    if (selectedEmoji) {
+      ctx.font = '80px "Segoe UI Emoji"';
+      ctx.fillText(selectedEmoji, canvas.width/2, canvas.height/2 + 60);
+    }
+    const dataUrl = canvas.toDataURL('image/png');
+    addSticker(dataUrl);
+    showToast('Özel sticker kaydedildi! 🎨');
+  });
+
+  function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '100px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'rgba(0,0,0,0.85)';
+    toast.style.backdropFilter = 'blur(12px)';
+    toast.style.color = 'white';
+    toast.style.padding = '12px 24px';
+    toast.style.borderRadius = '30px';
+    toast.style.fontWeight = '600';
+    toast.style.zIndex = '999';
+    toast.style.fontSize = '0.9rem';
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = '0.3s'; }, 1500);
+    setTimeout(() => toast.remove(), 2000);
+  }
+
+  // ---------- SEKME GEÇİŞLERİ ----------
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const screens = {
+    cameraScreen: document.getElementById('cameraScreen'),
+    customScreen: document.getElementById('customScreen'),
+    galleryScreen: document.getElementById('galleryScreen'),
+  };
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const screenId = btn.dataset.screen;
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[screenId].classList.add('active');
+      if (screenId === 'cameraScreen') {
+        cameraContainer.style.display = 'block';
+        cameraResult.style.display = 'none';
+        if (!currentStream) {
+          video.style.display = 'none';
+          cameraPlaceholder.style.display = 'flex';
+          captureBtn.style.display = 'none';
+          liveFilters.style.display = 'none';
+        } else {
+          video.style.display = 'block';
+          cameraPlaceholder.style.display = 'none';
+          captureBtn.style.display = 'flex';
+          liveFilters.style.display = 'flex';
+        }
+      } else {
+        stopCamera();
+      }
+      if (screenId === 'galleryScreen') renderGallery();
+    });
+  });
+
+  window.addEventListener('load', renderGallery);
+  window.addEventListener('beforeunload', stopCamera);
+</script>
+</body>
+</html>
