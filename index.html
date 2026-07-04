@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d0d14">
+  <title>StickerBomba Pro 💣</title>
+
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0d0d14;
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-bright: rgba(255, 255, 255, 0.09);
+      --accent: #ff2a6d;
+      --accent-glow: rgba(255, 42, 109, 0.4);
+      --accent2: #05d9e8;
+      --accent2-glow: rgba(5, 217, 232, 0.4);
+      --accent3: #f5a623;
+      --accent-gradient: linear-gradient(135deg, #ff2a6d, #05d9e8);
+      --text: #ffffff;
+      --text-secondary: #9494a8;
+      --radius-xl: 32px;
+      --radius-lg: 20px;
+      --radius-sm: 12px;
+      --shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background: var(--bg);
+      background-image: 
+        radial-gradient(circle at 0% 0%, rgba(255, 42, 109, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 100% 100%, rgba(5, 217, 232, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(13, 13, 20, 1) 0%, rgba(8, 8, 12, 1) 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding-bottom: calc(96px + env(safe-area-inset-bottom, 16px));
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Ultra Modern Header */
+    .header {
+      width: 100%;
+      background: rgba(13, 13, 20, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--surface-border);
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 24px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-title-group h1 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 700;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .header-title-group p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .header-badge {
+      background: rgba(255, 42, 109, 0.1);
+      border: 1px solid rgba(255, 42, 109, 0.3);
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 0 12px rgba(255, 42, 109, 0.15);
+    }
+
+    /* Viewport Screen Containers */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 500px;
+      margin: 16px auto 0;
+      padding: 0 16px;
+      animation: screenEnter 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .screen.active { display: block; }
+    @keyframes screenEnter { 
+      from { opacity: 0; transform: translateY(20px) scale(0.98); } 
+      to { opacity: 1; transform: translateY(0) scale(1); } 
+    }
+
+    /* Cards & Panels */
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    /* Camera Viewport Area & High-Res View */
+    #cameraContainer {
+      position: relative;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #050508;
+      aspect-ratio: 3/4;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+    video.mirrored {
+      transform: scaleX(-1);
+    }
+    
+    #cameraPlaceholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    /* Smart Camera Overlays */
+    .camera-action-bar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .cam-overlay-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(13, 13, 20, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: var(--transition);
+    }
+    .cam-overlay-btn:active { transform: scale(0.9); background: rgba(13, 13, 20, 0.9); }
+    .cam-overlay-btn.active { border-color: var(--accent2); color: var(--accent2); }
+
+    /* Screen Flash Effect Overlay */
+    #flashOverlay {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: #fff; opacity: 0; pointer-events: none; z-index: 20;
+    }
+    @keyframes flashAnimation { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* Countdown Visual Timer Overlay */
+    #countdownOverlay {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 15; pointer-events: none;
+    }
+    #countdownNumber {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 6.5rem;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 0 30px var(--accent-glow);
+      animation: countPulse 1s ease-out infinite;
+    }
+    @keyframes countPulse { 0% { transform: scale(1.3); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(0.8); opacity: 0; } }
+
+    /* Main Premium Shutter Trigger */
+    #captureBtnContainer {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: none;
+    }
+    #captureBtn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 4px solid white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+    #captureBtn::after {
+      content: "";
+      width: 56px;
+      height: 56px;
+      background: var(--accent-gradient);
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    #captureBtn:active { transform: scale(0.9); }
+    #captureBtn:active::after { transform: scale(0.85); }
+
+    /* Interactive Fine-Tuning Controls Sliders */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .slider-row span { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+    .premium-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      outline: none;
+    }
+    .premium-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    /* Buttons Typography Style */
+    .btn {
+      background: var(--accent-gradient);
+      border: none;
+      color: white;
+      padding: 16px 28px;
+      border-radius: var(--radius-lg);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 12px 24px rgba(255, 42, 109, 0.25);
+    }
+    .btn:active { transform: scale(0.96); opacity: 0.95; }
+    .btn.secondary {
+      background: rgba(255,255,255,0.06);
+      box-shadow: none;
+      border: 1px solid var(--surface-border);
+      color: white;
+    }
+    .btn.secondary:active { background: rgba(255,255,255,0.12); }
+    .btn.sm { padding: 10px 18px; font-size: 0.8rem; border-radius: 30px; }
+
+    /* Horizontal Selectors Rows */
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .panel-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px;
+      scrollbar-width: none;
+    }
+    .panel-row::-webkit-scrollbar { display: none; }
+    
+    .selector-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-left: 2px;
+    }
+
+    .pill-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-secondary);
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+    .pill-btn.active {
+      background: white;
+      color: #000;
+      border-color: white;
+      font-weight: 700;
+      box-shadow: 0 6px 16px rgba(255,255,255,0.15);
+    }
+
+    /* Result Preview Sheet Display */
+    .result-wrapper {
+      position: relative;
+      text-align: center;
+      padding: 8px 0;
+    }
+    .result-wrapper img {
+      width: 100%;
+      border-radius: var(--radius-xl);
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.65));
+      animation: stickerPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes stickerPop { from { transform: scale(0.9) rotate(2deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+    /* Custom Input Creation Area */
+    #customText {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--surface-border);
+      color: white;
+      font-size: 1rem;
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      margin: 12px 0;
+      resize: none;
+      transition: var(--transition);
+    }
+    #customText:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.4); box-shadow: 0 0 10px rgba(255,42,109,0.2); }
+    
+    .sticker-preview-box {
+      background: rgba(0,0,0,0.25);
+      border-radius: var(--radius-xl);
+      padding: 48px 24px;
+      min-height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 18px 0;
+      border: 1px dashed rgba(255,255,255,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .interactive-sticker {
+      background: var(--accent);
+      padding: 24px 36px;
+      border-radius: var(--radius-lg);
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      border: 6px solid white;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+      text-align: center;
+      max-width: 90%;
+      word-break: break-word;
+      transform: rotate(-2deg);
+      transition: transform 0.1s ease;
+    }
+
+    /* Gallery Grid Setup */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .gallery-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .gallery-item:active { transform: scale(0.94); }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery-item .delete-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(255, 42, 109, 0.95);
+      border: none; color: white; width: 26px; height: 26px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; cursor: pointer; z-index: 2;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Floating Navigation System */
+    .nav-bar {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      left: 20px; right: 20px;
+      background: rgba(20, 20, 30, 0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 40px;
+      display: flex;
+      padding: 6px;
+      z-index: 100;
+      border: 1px solid var(--surface-border);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+      max-width: 460px;
+      margin: 0 auto;
+    }
+    .nav-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 0;
+      border-radius: 34px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .nav-btn span { font-size: 1.4rem; transition: var(--transition); }
+    .nav-btn.active {
+      color: #fff;
+      background: var(--accent-gradient);
+      box-shadow: 0 10px 24px rgba(255, 42, 109, 0.35);
+    }
+    .nav-btn.active span { transform: scale(1.1) translateY(-2px); }
+
+    /* Immersive Dark Modal Viewports */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(8,8,12,0.97); z-index: 200; padding: 24px;
+      align-items: center; justify-content: center; flex-direction: column;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal img { max-width: 100%; max-height: 68vh; border-radius: var(--radius-xl); box-shadow: var(--shadow); }
+
+    /* Toast Notification Element */
+    .toast {
+      position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%) translateY(24px);
+      background: white; color: #000; padding: 16px 32px;
+      border-radius: 40px; font-weight: 700; font-size: 0.9rem; z-index: 1000;
+      box-shadow: var(--shadow); opacity: 0; pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .signature {
+      text-align: center; color: rgba(255,255,255,0.12); font-size: 0.65rem;
+      letter-spacing: 3px; margin: 24px 0 12px; font-weight: 600; font-family: 'Space Grotesk', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title-group">
+    <h1>StickerBomba 💣</h1>
+    <p>Premium Yapay Sticker Stüdyosu</p>
+  </div>
+  <div class="header-badge">Ultra HD v2</div>
+</div>
+
+<!-- EKRAN: ULTRA HD KAMERA VE AYARLAR -->
+<div id="cameraScreen" class="screen active">
+  <div id="cameraContainer">
+    <video id="video" class="mirrored" autoplay playsinline muted></video>
+    
+    <!-- Smart Control Overlays over Viewport -->
+    <div class="camera-action-bar">
+      <button class="cam-overlay-btn" id="toggleCamFacingBtn" title="Kamerayı Değiştir">🔄</button>
+      <button class="cam-overlay-btn" id="toggleTimerBtn" title="Zamanlayıcı (3s)">⏱️</button>
+    </div>
+
+    <!-- Visual Overlays for effects -->
+    <div id="flashOverlay"></div>
+    <div id="countdownOverlay"><span id="countdownNumber">3</span></div>
+
+    <div id="cameraPlaceholder">
+      <span style="font-size: 4.5rem; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));">📸</span>
+      <button class="btn" id="startCameraBtn">✨ Ultra HD Kamerayı Aç</button>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; max-width: 80%;">Yüksek çözünürlük ve hassas sticker algılama için kamera izni gereklidir.</p>
+    </div>
+
+    <div id="captureBtnContainer">
+      <button id="captureBtn" title="Fotoğraf Çek"></button>
+    </div>
+  </div>
+
+  <!-- Canlı Gelişmiş Ayarlar Paneli -->
+  <div id="liveControls" class="control-panel" style="display: none;">
+    <div>
+      <div class="selector-label">Sanatsal Filtreler</div>
+      <div class="panel-row" id="filterRow">
+        <button class="pill-btn active" data-filter="normal">Orijinal HD</button>
+        <button class="pill-btn" data-filter="pop">Vivid Pop</button>
+        <button class="pill-btn" data-filter="cyber">Cyberpunk</button>
+        <button class="pill-btn" data-filter="bw">Noir Siyah Beyaz</button>
+        <button class="pill-btn" data-filter="vintage">Retro Film</button>
+      </div>
+    </div>
+    
+    <div>
+      <div class="selector-label">Sticker Kenarlık Tipi</div>
+      <div class="panel-row" id="borderRow">
+        <button class="pill-btn active" data-border="diecut">💥 Klasik Kalın Beyaz</button>
+        <button class="pill-btn" data-border="neon">🚨 Parlayan Neon</button>
+        <button class="pill-btn" data-border="comic">💬 Çizgi Roman (Kesik)</button>
+        <button class="pill-btn" data-border="none">🚫 Kenarlıksız</button>
+      </div>
+    </div>
+
+    <!-- İnce Ayar Sliders (Fine tuning) -->
+    <div class="card" style="padding: 16px; margin-bottom:0; background: rgba(255,255,255,0.02);">
+      <div class="selector-label" style="margin-bottom:8px;">Sticker Metin İnce Ayarları</div>
+      <div class="slider-group">
+        <div class="slider-row">
+          <span>Yazı Boyutu:</span>
+          <input type="range" id="fontSizeSlider" class="premium-slider" min="6" max="11" value="8" step="0.5">
+        </div>
+        <div class="slider-row" style="margin-top: 6px;">
+          <span>Yazı Eğimi (Açı):</span>
+          <input type="range" id="rotationSlider" class="premium-slider" min="-15" max="15" value="-2" step="1">
+        </div>
+        <div class="slider-row" style="margin-top: 6px;">
+          <span>Metin Konumu:</span>
+          <div style="display: flex; gap:4px;">
+            <button class="pill-btn sm active" id="posBottomBtn" style="padding:4px 10px; font-size:0.75rem;">Alt</button>
+            <button class="pill-btn sm" id="posTopBtn" style="padding:4px 10px; font-size:0.75rem;">Üst</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fotoğraf Çekim Sonucu Detay Paneli -->
+  <div id="cameraResult" class="card" style="display: none; margin-top: 20px;">
+    <div class="result-wrapper" id="resultWrapper"></div>
+    <div class="control-panel" style="margin-top: 18px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn" id="savePhotoBtn">💾 Cihaza & Galeriye Kaydet</button>
+        <button class="btn" id="sharePhotoBtn">📤 Arkadaşlarınla Paylaş</button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px;">
+        <button class="btn secondary" id="refreshCaptionBtn">🔄 Başka Komik Yazı Yapıştır</button>
+        <button class="btn secondary" id="retakeBtn">📷 Yeni Fotoğraf Çek</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EKRAN: REPLİK METİN STICKER TASARLAYICI -->
+<div id="customScreen" class="screen">
+  <div class="card">
+    <h3 style="font-weight: 700; text-align: center; font-family: 'Fredoka'; font-size: 1.3rem;">✏️ Özel Slogan Stickerı Tasarla</h3>
+    <textarea id="customText" placeholder="Kendi efsanevi cümleni veya laf sokma repliğini yaz..." maxlength="75" rows="2"></textarea>
+    
+    <div class="selector-label">Arka Plan Rengi</div>
+    <div class="panel-row" id="colorPalette" style="justify-content: flex-start; gap: 10px; padding: 8px 0; overflow-x: auto;"></div>
+
+    <div class="selector-label" style="margin-top: 6px;">Popüler Hızlı Emojiler</div>
+    <div class="panel-row" id="quickEmojis" style="justify-content: flex-start; gap: 8px; padding: 6px 0 16px; overflow-x: auto;"></div>
+
+    <div class="sticker-preview-box">
+      <div class="interactive-sticker" id="interactiveSticker">BOMBA YAZI...</div>
+    </div>
+
+    <button class="btn" id="saveCustomBtn" style="width: 100%; margin-top: 10px;">🎨 Tasarımı Galeriye Gönder</button>
+  </div>
+</div>
+
+<!-- EKRAN: DİNAMİK GALERİ -->
+<div id="galleryScreen" class="screen">
+  <div class="card">
+    <h3 style="font-weight: 700; text-align: center; margin-bottom: 18px; font-family: 'Fredoka'; font-size: 1.3rem;">🖼️ Kaydedilen Bombalar</h3>
+    <div class="gallery-grid" id="galleryContainer"></div>
+  </div>
+  <div class="signature">🔥 POWERED BY MCT YAZILIM 2026 🔥</div>
+</div>
+
+<!-- SABİT ALT NAVİGASYON MENU -->
+<div class="nav-bar">
+  <button class="nav-btn active" data-screen="cameraScreen"><span>📸</span>Stüdyo</button>
+  <button class="nav-btn" data-screen="customScreen"><span>✏️</span>Özel Yap</button>
+  <button class="nav-btn" data-screen="galleryScreen"><span>🖼️</span>Galeri</button>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="previewModal" class="modal" onclick="this.style.display='none'">
+  <img id="modalImg" src="" alt="Sticker Big Preview">
+  <div style="margin-top: 24px; display:flex; gap:16px;" onclick="event.stopPropagation()">
+    <button class="btn sm" id="modalDownloadBtn">📥 İndir</button>
+    <button class="btn sm" id="modalShareBtn">📤 Paylaş</button>
+    <button class="btn sm secondary" onclick="document.getElementById('previewModal').style.display='none'">Kapat</button>
+  </div>
+</div>
+
+<canvas id="canvas" style="display: none;"></canvas>
+<div id="toast" class="toast">İşlem Başarılı! 🎉</div>
+
+<script>
+  // ---------- CONFIG DATA ARRAYS ----------
+  const funnyCaptions = [
+    "NİYET BOZUK, SURAT TATLI.", "BU GÜLÜŞÜN ARKASINDA NELER VAR...", "BEYİN.EXE ÇALIŞMAYI DURDURDU.",
+    "ŞOK SEVİYESİ: %1000", "TRAFİKTE SELEKTÖR YEMİŞ GİBİ.", "AKLINDAN GEÇENLER SANSÜRLENDİ.",
+    "SABAHIN KÖRÜNDE BU SURAT ÇEKİLMEZ.", "İÇİNDEKİ ŞEYTAN DIŞARI FIRLADI.", "GÖZLER AÇIK AMA BEYİN UYKUDA.",
+    "BU SURATLA ANCAK BARIŞ İMZALANIR.", "ACİLEN KAFEİN YÜKLENMESİ LAZIM.", "POKER FACE DÜNYA ŞAMPİYONU.",
+    "SANKİ PİYANGOYU ISKALAMIŞ GİBİ.", "BİR HİNLİK PEŞİNDE OLDUĞU KESİN.", "BU BAKIŞLAR BEDAVA MI SANDIN?",
+    "AZ SONRA BİR OLAY ÇIKARACAK.", "TAM BİR BAŞ BELASI İFADESİ.", "YARI MELEK YARI ŞEYTAN.",
+    "GÜLÜŞÜ BULAŞICI, DİKKAT ET!", "HER AN BİR ŞEYLER ÇEVİREBİLİR.", "O KADAR HAKLI Kİ KONUŞMUYOR.",
+    "SESSİZCE DÜNYAYI ELE GEÇİRİYOR.", "SİNSİLİK MODU: AKTİF. 🔥"
+  ];
+
+  const emojiList = ['💣', '😂', '🤣', '😎', '😜', '🤪', '🔥', '💯', '😈', '👻', '👀', '💥', '💀', '🚨', '👑'];
+  const bgColors = ['#ff2a6d', '#05d9e8', '#f5a623', '#9b5de5', '#00bbf9', '#00f5d4', '#ff006e', '#3a86ff', '#2ec4b6'];
+
+  // ---------- APP STATE STORES ----------
+  let currentStream = null;
+  let activeFilter = 'normal';
+  let activeBorder = 'diecut';
+  let cameraFacing = 'user'; // 'user' (front) or 'environment' (back)
+  let isTimerActive = false;
+  let textPosition = 'bottom'; // 'bottom' or 'top'
+  let selectedColor = '#ff2a6d';
+  let selectedEmoji = '💣';
+  let lastCapturedRawImage = null;
+  let currentGeneratedStickerDataUrl = null;
+
+  // ---------- DOM SELECTORS ----------
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const captureBtn = document.getElementById('captureBtn');
+  const captureBtnContainer = document.getElementById('captureBtnContainer');
+  const startCameraBtn = document.getElementById('startCameraBtn');
+  const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+  const cameraResult = document.getElementById('cameraResult');
+  const resultWrapper = document.getElementById('resultWrapper');
+  const liveControls = document.getElementById('liveControls');
+  const galleryContainer = document.getElementById('galleryContainer');
+  const customText = document.getElementById('customText');
+  const interactiveSticker = document.getElementById('interactiveSticker');
+  const previewModal = document.getElementById('previewModal');
+  
+  // Custom Sliders
+  const fontSizeSlider = document.getElementById('fontSizeSlider');
+  const rotationSlider = document.getElementById('rotationSlider');
+  const posBottomBtn = document.getElementById('posBottomBtn');
+  const posTopBtn = document.getElementById('posTopBtn');
+
+  // ---------- WEB AUDIO SHUTTER EFFECT ----------
+  function playShutterSound() {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const bufferSize = audioCtx.sampleRate * 0.12;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 1200;
+      noise.connect(filter);
+      filter.connect(audioCtx.destination);
+      noise.start();
+    } catch(e) { console.log("Audio contextual block"); }
+  }
+
+  // ---------- TOAST MANAGEMENT ----------
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // ---------- HIGH QUALITY CAMERA API HANDLERS ----------
+  async function startCamera() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+    }
+
+    // High quality configurations for crisp captures
+    const constraints = {
+      video: {
+        facingMode: cameraFacing,
+        width: { ideal: 1920, max: 3840 },
+        height: { ideal: 1080, max: 2160 },
+        frameRate: { ideal: 30 }
+      },
+      audio: false
+    };
+
+    try {
+      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = currentStream;
+      
+      // Mirror front camera view for intuitive styling
+      if (cameraFacing === 'user') {
+        video.classList.add('mirrored');
+      } else {
+        video.classList.remove('mirrored');
+      }
+
+      video.style.display = 'block';
+      cameraPlaceholder.style.display = 'none';
+      captureBtnContainer.style.display = 'flex';
+      liveControls.style.display = 'flex';
+    } catch (err) {
+      alert("Yüksek kaliteli kameraya erişilemedi. Lütfen izinleri veya başka bir uygulamanın kamerayı kullanmadığını kontrol edin.");
+    }
+  }
+
+  function stopCamera() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(track => track.stop());
+      currentStream = null;
+    }
+    video.style.display = 'none';
+    cameraPlaceholder.style.display = 'flex';
+    captureBtnContainer.style.display = 'none';
+    liveControls.style.display = 'none';
+  }
+
+  startCameraBtn.addEventListener('click', startCamera);
+
+  // Camera Actions Overlays Event Handlers
+  document.getElementById('toggleCamFacingBtn').addEventListener('click', () => {
+    cameraFacing = (cameraFacing === 'user') ? 'environment' : 'user';
+    if (currentStream) startCamera();
+    showToast(cameraFacing === 'user' ? 'Ön Kamera Aktif' : 'Arka Kamera (Yüksek Kalite) Aktif');
+  });
+
+  document.getElementById('toggleTimerBtn').addEventListener('click', function() {
+    isTimerActive = !isTimerActive;
+    this.classList.toggle('active', isTimerActive);
+    showToast(isTimerActive ? '3 Saniye Zamanlayıcı Açık' : 'Zamanlayıcı Kapatıldı');
+  });
+
+  // Controls UI Toggles
+  document.querySelectorAll('#filterRow .pill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filterRow .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      if (lastCapturedRawImage) regenerateCameraSticker();
+    });
+  });
+
+  document.querySelectorAll('#borderRow .pill-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#borderRow .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeBorder = btn.dataset.border;
+      if (lastCapturedRawImage) regenerateCameraSticker();
+    });
+  });
+
+  // Fine tuning updates
+  fontSizeSlider.addEventListener('input', () => { if (lastCapturedRawImage) regenerateCameraSticker(); });
+  rotationSlider.addEventListener('input', () => { if (lastCapturedRawImage) regenerateCameraSticker(); });
+  
+  posBottomBtn.addEventListener('click', () => {
+    posBottomBtn.classList.add('active'); posTopBtn.classList.remove('active');
+    textPosition = 'bottom'; if (lastCapturedRawImage) regenerateCameraSticker();
+  });
+  posTopBtn.addEventListener('click', () => {
+    posTopBtn.classList.add('active'); posBottomBtn.classList.remove('active');
+    textPosition = 'top'; if (lastCapturedRawImage) regenerateCameraSticker();
+  });
+
+  // ---------- ADVANCED MULTILINE TEXT RENDERING WRAPPER ----------
+  function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let lines = [];
+    
+    for (let n = 0; n < words.length; n++) {
+      let testLine = line + words[n] + ' ';
+      let metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        lines.push(line);
+        line = words[n] + ' ';
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+
+    // Apply accurate multi-line baseline calculation
+    let startY = y - ((lines.length - 1) * lineHeight / 2);
+    for (let i = 0; i < lines.length; i++) {
+      ctx.strokeText(lines[i].trim(), x, startY + (i * lineHeight));
+      ctx.fillText(lines[i].trim(), x, startY + (i * lineHeight));
+    }
+  }
+
+  // ---------- DIE-CUT STICKER GENERATION PIPELINE ----------
+  function processSticker(rawImgUrl, captionText, emojiBadge) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        // High fidelity resolution boost for final sticker export
+        const padding = 36;
+        canvas.width = img.width + padding * 2;
+        canvas.height = img.height + padding * 2;
+        const ctx = canvas.getContext('2d');
+
+        // Clear canvas cleanly
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Structural Border Matrix Render Backing
+        if (activeBorder === 'diecut') {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(padding - 10, padding - 10, img.width + 20, img.height + 20, 36);
+          ctx.fill();
+        } else if (activeBorder === 'neon') {
+          ctx.fillStyle = '#11111a';
+          ctx.beginPath();
+          ctx.roundRect(padding - 4, padding - 4, img.width + 8, img.height + 8, 28);
+          ctx.fill();
+          ctx.lineWidth = 14;
+          ctx.strokeStyle = '#05d9e8';
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#05d9e8';
+          ctx.stroke();
+          ctx.shadowBlur = 0; // reset
+        } else if (activeBorder === 'comic') {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(padding - 6, padding - 4, img.width + 12, img.height + 8, 12);
+          ctx.fill();
+          ctx.lineWidth = 8;
+          ctx.strokeStyle = '#000000';
+          ctx.stroke();
+        }
+
+        // 2. Render Profile Photo into Safe Clip Node
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(padding, padding, img.width, img.height, 26);
+        ctx.clip();
+        ctx.drawImage(img, padding, padding);
+
+        // 3. Process Live Quality Filters Pixel Array Layers
+        const imgData = ctx.getImageData(padding, padding, img.width, img.height);
+        const data = imgData.data;
+        
+        if (activeFilter === 'bw') {
+          for (let i = 0; i < data.length; i += 4) {
+            let v = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+            data[i] = v; data[i+1] = v; data[i+2] = v;
+          }
+        } else if (activeFilter === 'cyber') {
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, data[i] * 1.2);      // Amplified Reds
+            data[i+1] = Math.min(255, data[i+1] * 0.8);  // Crushed Greens
+            data[i+2] = Math.min(255, data[i+2] * 1.5);  // Supercharged Blues
+          }
+        } else if (activeFilter === 'pop') {
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = data[i] > 128 ? 255 : data[i] * 1.3;
+            data[i+1] = data[i+1] * 1.1;
+            data[i+2] = data[i+2] > 128 ? 255 : data[i+2] * 0.9;
+          }
+        } else if (activeFilter === 'vintage') {
+          for (let i = 0; i < data.length; i += 4) {
+            data[i] = Math.min(255, (data[i] * 0.393) + (data[i+1] * 0.769) + (data[i+2] * 0.189));
+            data[i+1] = Math.min(255, (data[i] * 0.349) + (data[i+1] * 0.686) + (data[i+2] * 0.168));
+            data[i+2] = Math.min(255, (data[i] * 0.272) + (data[i+1] * 0.534) + (data[i+2] * 0.131));
+          }
+        }
+        ctx.putImageData(imgData, padding, padding);
+        ctx.restore();
+
+        // 4. Advanced Metin Katmanı Renderlama (Text Overlay Module)
+        ctx.save();
+        
+        // Calculate slider parameters
+        let sizeMultiplier = parseFloat(fontSizeSlider.value) * 0.01;
+        let fontComputedSize = Math.floor(canvas.width * sizeMultiplier);
+        let angleRadians = parseFloat(rotationSlider.value) * Math.PI / 180;
+        
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `800 ${fontComputedSize}px 'Fredoka', sans-serif`;
+        
+        // Outline styling parameters
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(6, fontComputedSize * 0.25);
+        ctx.lineJoin = 'round';
+        ctx.fillStyle = '#ff2a6d';
+        
+        if (activeBorder === 'neon') {
+          ctx.fillStyle = '#05d9e8';
+          ctx.strokeStyle = '#11111a';
+        } else if (activeBorder === 'comic') {
+          ctx.fillStyle = '#fee440';
+          ctx.strokeStyle = '#000000';
+        }
+
+        // Set text coordinates based on dynamic position setting
+        let textY = (textPosition === 'bottom') ? canvas.height - (padding + 70) : padding + 70;
+        let textX = canvas.width / 2;
+        
+        // Translate and rotate canvas precisely at the text block anchor node
+        ctx.translate(textX, textY);
+        ctx.rotate(angleRadians);
+        
+        drawWrappedText(ctx, captionText, 0, 0, canvas.width * 0.84, fontComputedSize + 10);
+        ctx.restore();
+
+        // 5. Floating Badge Graphic Element
+        if (emojiBadge) {
+          ctx.font = `${Math.floor(canvas.width * 0.12)}px sans-serif`;
+          ctx.fillText(emojiBadge, canvas.width - (padding + 60), padding + 70);
+        }
+
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.src = rawImgUrl;
+    });
+  }
+
+  // ---------- SHUTTER FLOW MANAGER ----------
+  async function executeCaptureAction() {
+    playShutterSound();
+
+    // Trigger visual screen ring flash frame
+    const flash = document.getElementById('flashOverlay');
+    flash.style.animation = 'none';
+    setTimeout(() => { flash.style.animation = 'flashAnimation 0.4s ease-out'; }, 10);
+
+    const tempCanvas = document.createElement('canvas');
+    // Capture at structural raw video profile stream bounds for crystal quality
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // Maintain orientation mapping vectors
+    if (cameraFacing === 'user') {
+      tempCtx.translate(tempCanvas.width, 0);
+      tempCtx.scale(-1, 1);
+    }
+    tempCtx.drawImage(video, 0, 0);
+    
+    lastCapturedRawImage = tempCanvas.toDataURL('image/png');
+    document.getElementById('cameraContainer').style.display = 'none';
+    captureBtnContainer.style.display = 'none';
+
+    await regenerateCameraSticker();
+    cameraResult.style.display = 'block';
+  }
+
+  captureBtn.addEventListener('click', () => {
+    if (!currentStream) return;
+    
+    if (isTimerActive) {
+      const countdownOverlay = document.getElementById('countdownOverlay');
+      const countdownNumber = document.getElementById('countdownNumber');
+      countdownOverlay.style.display = 'flex';
+      
+      let count = 3;
+      countdownNumber.textContent = count;
+      
+      let interval = setInterval(() => {
+        count--;
+        if (count <= 0) {
+          clearInterval(interval);
+          countdownOverlay.style.display = 'none';
+          executeCaptureAction();
+        } else {
+          countdownNumber.textContent = count;
+        }
+      }, 1000);
+    } else {
+      executeCaptureAction();
+    }
+  });
+
+  async function regenerateCameraSticker() {
+    const randomCaption = funnyCaptions[Math.floor(Math.random() * funnyCaptions.length)];
+    const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+    
+    currentGeneratedStickerDataUrl = await processSticker(lastCapturedRawImage, randomCaption, randomEmoji);
+    resultWrapper.innerHTML = `<img src="${currentGeneratedStickerDataUrl}" alt="StickerBomba Generation">`;
+  }
+
+  refreshCaptionBtn.addEventListener('click', regenerateCameraSticker);
+
+  retakeBtn.addEventListener('click', () => {
+    cameraResult.style.display = 'none';
+    document.getElementById('cameraContainer').style.display = 'block';
+    captureBtnContainer.style.display = 'flex';
+  });
+
+  // ---------- GALLERY STORAGE CONTROLLERS ----------
+  function getGalleryData() {
+    try { return JSON.parse(localStorage.getItem('sb_bombs_v2_store')) || []; } catch { return []; }
+  }
+
+  function saveStickerToLocalStorage(dataUrl) {
+    const data = getGalleryData();
+    data.unshift({ id: Date.now(), src: dataUrl });
+    localStorage.setItem('sb_bombs_v2_store', JSON.stringify(data));
+    showToast('Galeriye Güvenle Eklendi! 💥');
+  }
+
+  savePhotoBtn.addEventListener('click', () => {
+    if (currentGeneratedStickerDataUrl) {
+      saveStickerToLocalStorage(currentGeneratedStickerDataUrl);
+      
+      const link = document.createElement('a');
+      link.download = `stickerbomba_hd_${Date.now()}.png`;
+      link.href = currentGeneratedStickerDataUrl;
+      link.click();
+    }
+  });
+
+  async function shareStickerFlow(dataUrl) {
+    if (navigator.share) {
+      try {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], 'stickerbomba_pro.png', { type: 'image/png' });
+        await navigator.share({
+          files: [file],
+          title: 'StickerBomba Pro 💣',
+          text: 'StickerBomba PWA uygulamasında efsane bir sticker ürettim, şuna bak!'
+        });
+      } catch (err) { console.log('Share operations aborted'); }
+    } else {
+      alert('Cihaz işletim sistemi yerel paylaşıma izin vermiyor. Görseli indirerek manuel paylaşım yapabilirsiniz.');
+    }
+  }
+
+  sharePhotoBtn.addEventListener('click', () => {
+    if (currentGeneratedStickerDataUrl) shareStickerFlow(currentGeneratedStickerDataUrl);
+  });
+
+  // ---------- REPLİK METİN TASARLAYICI ÖZEL MODÜL ----------
+  function initCustomCreator() {
+    const palette = document.getElementById('colorPalette');
+    palette.innerHTML = bgColors.map(color => `
+      <div class="color-dot" style="background:${color}; width:38px; height:38px; border-radius:50%; border:3px solid ${selectedColor===color?'#fff':'transparent'}; cursor:pointer; flex-shrink:0;" data-color="${color}"></div>
+    `).join('');
+
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        selectedColor = dot.dataset.color;
+        initCustomCreator();
+        updateCustomPreview();
+      });
+    });
+
+    const emojiRow = document.getElementById('quickEmojis');
+    emojiRow.innerHTML = emojiList.map(emoji => `
+      <button class="pill-btn" style="padding: 6px 14px; font-size:1.1rem;">${emoji}</button>
+    `).join('');
+
+    document.querySelectorAll('#quickEmojis .pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedEmoji = btn.textContent;
+        updateCustomPreview();
+      });
+    });
+  }
+
+  function updateCustomPreview() {
+    interactiveSticker.style.background = selectedColor;
+    interactiveSticker.textContent = (customText.value.trim() || 'BOMBA YAZI...') + ' ' + selectedEmoji;
+  }
+
+  customText.addEventListener('input', updateCustomPreview);
+
+  saveCustomBtn.addEventListener('click', () => {
+    if (!customText.value.trim()) { showToast('Lütfen metin alanı doldurun! ✏️'); return; }
+    
+    canvas.width = 600;
+    canvas.height = 600;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Render custom absolute sticker block assets
+    ctx.fillStyle = selectedColor;
+    ctx.beginPath();
+    ctx.roundRect(20, 20, 560, 560, 48);
+    ctx.fill();
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = "bold 42px 'Fredoka', sans-serif";
+    
+    drawWrappedText(ctx, customText.value.toUpperCase(), 300, 240, 500, 56);
+    
+    ctx.font = "96px sans-serif";
+    ctx.fillText(selectedEmoji, 300, 440);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    saveStickerToLocalStorage(dataUrl);
+    customText.value = '';
+    updateCustomPreview();
+  });
+
+  // ---------- GALLERY LIFECYCLE MANAGEMENTS ----------
+  function renderGallery() {
+    const items = getGalleryData();
+    if (items.length === 0) {
+      galleryContainer.innerHTML = `<div style="grid-column: span 3; text-align:center; padding:60px 10px; color:var(--text-secondary); font-size:0.9rem;">Henüz kayıtlı bir sticker bombası bulunmuyor. 📭</div>`;
+      return;
+    }
+
+    galleryContainer.innerHTML = items.map(item => `
+      <div class="gallery-item" data-id="${item.id}">
+        <button class="delete-badge">✕</button>
+        <img src="${item.src}" alt="Saved Sticker Node">
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.gallery-item').forEach(el => {
+      const id = el.dataset.id;
+      const src = el.querySelector('img').src;
+
+      el.addEventListener('click', () => {
+        document.getElementById('modalImg').src = src;
+        previewModal.style.display = 'flex';
+        
+        document.getElementById('modalDownloadBtn').onclick = () => {
+          const a = document.createElement('a');
+          a.download = `bomba_sticker_${id}.png`;
+          a.href = src;
+          a.click();
+        };
+        document.getElementById('modalShareBtn').onclick = () => shareStickerFlow(src);
+      });
+
+      el.querySelector('.delete-badge').addEventListener('click', (e) => {
+        e.stopPropagation();
+        let galleryItems = getGalleryData();
+        galleryItems = galleryItems.filter(x => x.id != id);
+        localStorage.setItem('sb_bombs_v2_store', JSON.stringify(galleryItems));
+        renderGallery();
+        showToast('Kayıt Silindi 🗑️');
+      });
+    });
+  }
+
+  // ---------- ROUTER AND NAVIGATION lifecycles ----------
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetScreen = btn.dataset.screen;
+      
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      
+      btn.classList.add('active');
+      document.getElementById(targetScreen).classList.add('active');
+
+      if (targetScreen !== 'cameraScreen') stopCamera();
+      if (targetScreen === 'customScreen') initCustomCreator();
+      if (targetScreen === 'galleryScreen') renderGallery();
+    });
+  });
+
+  window.addEventListener('load', () => {
+    renderGallery();
+  });
+</script>
+</body>
+</html>
